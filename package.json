@@ -1,0 +1,12 @@
+{
+  "name": "gestor-polizas-broker",
+  "version": "1.0.0",
+  "description": "App de gestión de pólizas para broker de seguros en Ecuador",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

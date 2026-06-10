@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión de Pólizas — Bróker de Seguros</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.10.0/dist/tabler-icons.min.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f6fa;color:#1a1a2e;min-height:100vh}
+  .topnav{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:50}
+  .topnav-brand{display:flex;align-items:center;gap:10px}
+  .topnav-brand .icon{width:34px;height:34px;background:#185FA5;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
+  .topnav-brand .title{font-size:15px;font-weight:600;color:#1a1a2e}
+  .topnav-brand .sub{font-size:11px;color:#64748b}
+  .topnav-right{display:flex;gap:8px;align-items:center}
+  .container{max-width:1200px;margin:0 auto;padding:1.5rem}
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:1.5rem}
+  .stat{background:#fff;border-radius:10px;padding:14px 16px;border:1px solid #e2e8f0}
+  .stat-label{font-size:11px;color:#64748b;margin-bottom:4px;font-weight:500;text-transform:uppercase;letter-spacing:0.05em}
+  .stat-value{font-size:26px;font-weight:700;color:#1a1a2e}
+  .stat-value.red{color:#dc2626}.stat-value.amber{color:#d97706}.stat-value.green{color:#16a34a}.stat-value.blue{color:#185FA5}
+  .actions-panel{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:1rem 1.25rem;margin-bottom:1.25rem}
+  .actions-panel-title{font-size:12px;font-weight:600;color:#64748b;margin-bottom:10px;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:0.05em}
+  .actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .action-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px}
+  .action-card-title{font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:3px;display:flex;align-items:center;gap:6px}
+  .action-card-desc{font-size:12px;color:#64748b;margin-bottom:10px;line-height:1.5}
+  .toolbar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:center;background:#fff;padding:10px 12px;border-radius:10px;border:1px solid #e2e8f0}
+  .toolbar input[type=text]{flex:1;min-width:150px;font-size:13px;border:1px solid #e2e8f0;border-radius:6px;padding:7px 10px;outline:none;background:#f8fafc}
+  .toolbar input[type=text]:focus{border-color:#185FA5;background:#fff}
+  .toolbar select{font-size:13px;border:1px solid #e2e8f0;border-radius:6px;padding:7px 10px;outline:none;background:#f8fafc;cursor:pointer}
+  .table-wrap{background:#fff;border-radius:10px;border:1px solid #e2e8f0;overflow:hidden}
+  .table-scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:700px}
+  th{text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:#64748b;border-bottom:1px solid #e2e8f0;background:#f8fafc;text-transform:uppercase;letter-spacing:0.04em}
+  td{padding:11px 12px;border-bottom:1px solid #f1f5f9;color:#1a1a2e;vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#f8fafc}
+  .badge{display:inline-block;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px}
+  .badge-red{background:#fef2f2;color:#dc2626}.badge-amber{background:#fffbeb;color:#d97706}.badge-green{background:#f0fdf4;color:#16a34a}
+  .btn{border:none;border-radius:7px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all 0.15s}
+  .btn-primary{background:#185FA5;color:#fff}.btn-primary:hover{background:#0c447c}
+  .btn-wa{background:#16a34a;color:#fff}.btn-wa:hover{background:#15803d}
+  .btn-cal{background:#dc2626;color:#fff}.btn-cal:hover{background:#b91c1c}
+  .btn-outline{background:#fff;color:#475569;border:1px solid #e2e8f0}.btn-outline:hover{background:#f8fafc}
+  .btn-icon{background:transparent;border:1px solid #e2e8f0;border-radius:6px;padding:5px 7px;cursor:pointer;color:#64748b;font-size:13px;display:inline-flex;align-items:center}
+  .btn-icon:hover{background:#f8fafc}
+  .btn-icon.wa{color:#16a34a;border-color:#bbf7d0}.btn-icon.wa:hover{background:#f0fdf4}
+  .btn-icon.cal{color:#dc2626;border-color:#fecaca}.btn-icon.cal:hover{background:#fef2f2}
+  .btn-icon.danger{color:#dc2626;border-color:#fecaca}.btn-icon.danger:hover{background:#fef2f2}
+  .alert-banner{border-radius:0 8px 8px 0;padding:10px 14px;font-size:13px;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+  .alert-red{background:#fef2f2;color:#dc2626;border-left:3px solid #dc2626}
+  .alert-amber{background:#fffbeb;color:#d97706;border-left:3px solid #d97706}
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:flex-start;justify-content:center;padding:3rem 1rem;overflow-y:auto}
+  .overlay.open{display:flex}
+  .modal{background:#fff;border-radius:12px;width:100%;max-width:580px;padding:1.5rem;border:1px solid #e2e8f0}
+  .modal h2{font-size:16px;font-weight:700;margin-bottom:1.25rem;color:#1a1a2e}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .form-group{display:flex;flex-direction:column;gap:4px}
+  .form-group.full{grid-column:1/-1}
+  .form-group label{font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.04em}
+  .form-group input,.form-group select{font-size:13px;width:100%;border:1px solid #e2e8f0;border-radius:7px;padding:8px 10px;outline:none;background:#f8fafc}
+  .form-group input:focus,.form-group select:focus{border-color:#185FA5;background:#fff}
+  .form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem}
+  .form-error{color:#dc2626;font-size:12px;margin-top:6px;display:none}
+  .wa-item{border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#fff}
+  .wa-item-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .wa-preview{font-size:11px;color:#64748b;background:#f8fafc;padding:7px 9px;border-radius:6px;line-height:1.6}
+  .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:200;white-space:nowrap;max-width:90vw}
+  .toast.show{opacity:1}
+  .empty-state{text-align:center;padding:3rem 1rem;color:#64748b;font-size:13px}
+  .empty-state i{font-size:32px;display:block;margin-bottom:8px;color:#cbd5e1}
+  .row-actions{display:flex;align-items:center;gap:4px}
+  .loading{text-align:center;padding:3rem;color:#64748b;font-size:13px}
+  .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
+  .status-dot.green{background:#16a34a}.status-dot.red{background:#dc2626}
+  @media(max-width:600px){.actions-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.form-group.full{grid-column:1}.topnav-right .btn-outline{display:none}}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-brand">
+    <div class="icon"><i class="ti ti-shield-check"></i></div>
+    <div>
+      <div class="title">Gestión de Pólizas</div>
+      <div class="sub" id="server-status"><span class="status-dot green"></span>Servidor activo · Ecuador</div>
+    </div>
+  </div>
+  <div class="topnav-right">
+    <button class="btn btn-outline" onclick="exportCSV()"><i class="ti ti-download"></i> Exportar</button>
+    <button class="btn btn-primary" onclick="abrirModal()"><i class="ti ti-plus"></i> Nueva póliza</button>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="stats-row" id="stats-row"><div class="loading"><i class="ti ti-loader" style="font-size:20px"></i> Cargando datos...</div></div>
+  <div id="alertas-banner"></div>
+  <div class="actions-panel">
+    <div class="actions-panel-title"><i class="ti ti-send" style="font-size:14px"></i> Acciones rápidas — pólizas próximas a vencer (≤30 días)</div>
+    <div class="actions-grid">
+      <div class="action-card">
+        <div class="action-card-title"><i class="ti ti-brand-whatsapp" style="color:#16a34a"></i> WhatsApp automático</div>
+        <div class="action-card-desc">Envía mensajes de alerta a todos los clientes con pólizas próximas a vencer. El mensaje se genera automáticamente.</div>
+        <button class="btn btn-wa" onclick="mostrarPanelWA()"><i class="ti ti-brand-whatsapp"></i> Enviar alertas WA</button>
+      </div>
+      <div class="action-card">
+        <div class="action-card-title"><i class="ti ti-calendar-event" style="color:#dc2626"></i> Google Calendar</div>
+        <div class="action-card-desc">Descarga un archivo .ics con vencimientos y alertas de 30 días para importar en Google Calendar.</div>
+        <button class="btn btn-cal" onclick="exportarCalendar()"><i class="ti ti-calendar-plus"></i> Agregar a Calendar</button>
+      </div>
+    </div>
+  </div>
+  <div class="toolbar">
+    <input type="text" id="buscador" placeholder="Buscar cliente, placa, aseguradora o N° póliza..." oninput="renderTabla()">
+    <select id="filtro-estado" onchange="renderTabla()">
+      <option value="">Todos los estados</option>
+      <option value="vencida">Vencida</option>
+      <option value="critica">Crítica (≤7 días)</option>
+      <option value="alerta">Alerta (≤30 días)</option>
+      <option value="vigente">Vigente</option>
+    </select>
+    <select id="filtro-tipo" onchange="renderTabla()">
+      <option value="">Todos los tipos</option>
+      <option>Vehículo</option><option>Vida</option><option>Salud</option><option>Incendio</option><option>Otro</option>
+    </select>
+  </div>
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:16%">Cliente</th>
+            <th style="width:10%">Placa / ID</th>
+            <th style="width:14%">Aseguradora</th>
+            <th style="width:9%">Tipo</th>
+            <th style="width:10%">No. Póliza</th>
+            <th style="width:10%">Vence</th>
+            <th style="width:7%">Días</th>
+            <th style="width:8%">Estado</th>
+            <th style="width:16%">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-body"><tr><td colspan="9"><div class="loading">Cargando pólizas...</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal nueva/editar póliza -->
+<div class="overlay" id="overlay-form">
+  <div class="modal">
+    <h2 id="modal-title">Nueva póliza</h2>
+    <div class="form-grid">
+      <div class="form-group full"><label>Nombre del cliente *</label><input type="text" id="f-cliente" placeholder="Ej: Juan Pérez"></div>
+      <div class="form-group"><label>Placa / Identificador</label><input type="text" id="f-placa" placeholder="Ej: ABC-1234"></div>
+      <div class="form-group"><label>No. de póliza</label><input type="text" id="f-numero" placeholder="Ej: P-00234"></div>
+      <div class="form-group"><label>Aseguradora *</label>
+        <select id="f-aseguradora">
+          <option value="">Seleccionar...</option>
+          <option>Seguros Sucre</option><option>Equinoccial</option><option>Oriente Seguros</option>
+          <option>Chubb</option><option>Latina Seguros</option><option>Sweaden</option><option>AIG</option><option>QBE</option><option>Otra</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Tipo de seguro *</label>
+        <select id="f-tipo">
+          <option value="">Seleccionar...</option>
+          <option>Vehículo</option><option>Vida</option><option>Salud</option><option>Incendio</option><option>Otro</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Fecha de inicio *</label><input type="date" id="f-inicio"></div>
+      <div class="form-group"><label>Fecha de vencimiento *</label><input type="date" id="f-vence"></div>
+      <div class="form-group"><label>Prima (USD)</label><input type="number" id="f-prima" placeholder="450.00" step="0.01"></div>
+      <div class="form-group"><label>Teléfono cliente</label><input type="text" id="f-telefono" placeholder="Ej: 0991234567" maxlength="10"></div>
+      <div class="form-group full"><label>Notas</label><input type="text" id="f-notas" placeholder="Observaciones opcionales"></div>
+    </div>
+    <div class="form-error" id="form-error"></div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarPoliza()"><i class="ti ti-device-floppy"></i> Guardar póliza</button>
+    </div>
+  </div>
+</div>
+
+<!-- Panel WhatsApp masivo -->
+<div class="overlay" id="overlay-wa">
+  <div class="modal" style="max-width:620px">
+    <h2>Enviar alertas por WhatsApp</h2>
+    <p style="font-size:13px;color:#64748b;margin-bottom:14px">Pólizas urgentes. Marca las que deseas notificar y haz clic en "Abrir WhatsApp".</p>
+    <div id="wa-lista"></div>
+    <div id="wa-vacio" style="display:none;font-size:13px;color:#64748b;padding:1rem 0">No hay pólizas urgentes en este momento.</div>
+    <div class="form-actions" style="margin-top:12px">
+      <button class="btn btn-outline" onclick="cerrarOverlay('overlay-wa')">Cerrar</button>
+      <button class="btn btn-wa" onclick="enviarWASeleccionados()"><i class="ti ti-brand-whatsapp"></i> Abrir WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── API: comunicación con el servidor ───────────────────────────────────────
+const API = '/api/polizas';
+let polizas = [];
+let editingId = null;
+
+async function cargarPolizas() {
+  try {
+    const r = await fetch(API);
+    if (!r.ok) throw new Error();
+    polizas = await r.json();
+    render();
+  } catch(e) {
+    document.getElementById('server-status').innerHTML =
+      '<span class="status-dot red"></span>Error conectando al servidor';
+    document.getElementById('tabla-body').innerHTML =
+      '<tr><td colspan="9"><div class="empty-state"><i class="ti ti-wifi-off"></i>No se pudo conectar al servidor.</div></td></tr>';
+  }
+}
+
+async function apiPost(data) {
+  const r = await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+  if (!r.ok) throw new Error('Error al crear');
+  return r.json();
+}
+
+async function apiPut(id, data) {
+  const r = await fetch(`${API}/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+  if (!r.ok) throw new Error('Error al actualizar');
+  return r.json();
+}
+
+async function apiDelete(id) {
+  const r = await fetch(`${API}/${id}`, { method:'DELETE' });
+  if (!r.ok) throw new Error('Error al eliminar');
+  return r.json();
+}
+
+// ─── Utilidades de fechas y estados ─────────────────────────────────────────
+function diasRestantes(v){const h=new Date();h.setHours(0,0,0,0);const d=new Date(v);d.setHours(0,0,0,0);return Math.round((d-h)/86400000);}
+function estadoPoliza(d){if(d<0)return'vencida';if(d<=7)return'critica';if(d<=30)return'alerta';return'vigente';}
+function badgeEstado(e){const m={vencida:['badge-red','Vencida'],critica:['badge-red','Crítica'],alerta:['badge-amber','Alerta'],vigente:['badge-green','Vigente']};const[c,l]=m[e];return`<span class="badge ${c}">${l}</span>`;}
+function fd(s){if(!s||s==='-')return'-';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;}
+
+// ─── Render principal ────────────────────────────────────────────────────────
+function renderStats(){
+  const c={vencida:0,critica:0,alerta:0,vigente:0};
+  polizas.forEach(p=>c[estadoPoliza(diasRestantes(p.vence))]++);
+  document.getElementById('stats-row').innerHTML=`
+    <div class="stat"><div class="stat-label">Total pólizas</div><div class="stat-value blue">${polizas.length}</div></div>
+    <div class="stat"><div class="stat-label">Vencidas</div><div class="stat-value red">${c.vencida}</div></div>
+    <div class="stat"><div class="stat-label">Críticas ≤7d</div><div class="stat-value red">${c.critica}</div></div>
+    <div class="stat"><div class="stat-label">Alerta ≤30d</div><div class="stat-value amber">${c.alerta}</div></div>
+    <div class="stat"><div class="stat-label">Vigentes</div><div class="stat-value green">${c.vigente}</div></div>`;
+}
+
+function renderAlertas(){
+  const venc=polizas.filter(p=>diasRestantes(p.vence)<0);
+  const crit=polizas.filter(p=>{const d=diasRestantes(p.vence);return d>=0&&d<=7;});
+  const al30=polizas.filter(p=>{const d=diasRestantes(p.vence);return d>7&&d<=30;});
+  let h='';
+  if(venc.length)h+=`<div class="alert-banner alert-red"><i class="ti ti-alert-triangle" style="font-size:16px;flex-shrink:0;margin-top:1px"></i><div><strong>${venc.length} póliza${venc.length>1?'s':''} vencida${venc.length>1?'s':''}:</strong> ${venc.map(p=>p.cliente).join(', ')} — gestionar renovación urgente.</div></div>`;
+  if(crit.length)h+=`<div class="alert-banner alert-red"><i class="ti ti-bell-ringing" style="font-size:16px;flex-shrink:0;margin-top:1px"></i><div><strong>${crit.length} vence en ≤7 días:</strong> ${crit.map(p=>`${p.cliente} (${diasRestantes(p.vence)}d)`).join(', ')}</div></div>`;
+  if(al30.length)h+=`<div class="alert-banner alert-amber"><i class="ti ti-bell" style="font-size:16px;flex-shrink:0;margin-top:1px"></i><div><strong>${al30.length} vence en ≤30 días:</strong> ${al30.map(p=>`${p.cliente} (${diasRestantes(p.vence)}d)`).join(', ')}</div></div>`;
+  document.getElementById('alertas-banner').innerHTML=h;
+}
+
+function renderTabla(){
+  const busq=document.getElementById('buscador').value.toLowerCase();
+  const fE=document.getElementById('filtro-estado').value;
+  const fT=document.getElementById('filtro-tipo').value;
+  let lista=polizas.filter(p=>{
+    const d=diasRestantes(p.vence),e=estadoPoliza(d);
+    const mb=!busq||p.cliente.toLowerCase().includes(busq)||(p.placa||'').toLowerCase().includes(busq)||p.aseguradora.toLowerCase().includes(busq)||(p.numero||'').toLowerCase().includes(busq);
+    return mb&&(!fE||e===fE)&&(!fT||p.tipo===fT);
+  }).sort((a,b)=>diasRestantes(a.vence)-diasRestantes(b.vence));
+  const tbody=document.getElementById('tabla-body');
+  if(!lista.length){tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state"><i class="ti ti-search"></i>No se encontraron pólizas.</div></td></tr>`;return;}
+  tbody.innerHTML=lista.map(p=>{
+    const dias=diasRestantes(p.vence),est=estadoPoliza(dias);
+    const diasStr=dias<0?`<span style="color:#dc2626;font-weight:600">${Math.abs(dias)}d venc.</span>`:`<span style="color:${est==='critica'?'#dc2626':est==='alerta'?'#d97706':'#16a34a'};font-weight:600">${dias}d</span>`;
+    return`<tr>
+      <td title="${p.notas||''}" style="max-width:140px">${p.cliente}</td>
+      <td>${p.placa||'-'}</td>
+      <td title="${p.aseguradora}" style="max-width:120px">${p.aseguradora}</td>
+      <td>${p.tipo}</td>
+      <td>${p.numero||'-'}</td>
+      <td>${fd(p.vence)}</td>
+      <td>${diasStr}</td>
+      <td>${badgeEstado(est)}</td>
+      <td><div class="row-actions">
+        ${p.telefono?`<button class="btn-icon wa" onclick="enviarWAIndividual(${p.id})" title="WhatsApp"><i class="ti ti-brand-whatsapp"></i></button>`:''}
+        <button class="btn-icon cal" onclick="exportarCalendarIndividual(${p.id})" title="Agregar a Calendar"><i class="ti ti-calendar-plus"></i></button>
+        <button class="btn-icon" onclick="editarPoliza(${p.id})" title="Editar"><i class="ti ti-edit"></i></button>
+        <button class="btn-icon danger" onclick="eliminarPoliza(${p.id})" title="Eliminar"><i class="ti ti-trash"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function render(){renderStats();renderAlertas();renderTabla();}
+
+// ─── Guardar / Editar / Eliminar ─────────────────────────────────────────────
+function abrirModal(id=null){
+  editingId=id;
+  document.getElementById('modal-title').textContent=id?'Editar póliza':'Nueva póliza';
+  const campos=['cliente','placa','numero','aseguradora','tipo','inicio','vence','prima','telefono','notas'];
+  if(id){const p=polizas.find(x=>x.id===id);campos.forEach(c=>{const el=document.getElementById('f-'+c);if(el)el.value=p[c]||'';});}
+  else{
+    campos.forEach(c=>{const el=document.getElementById('f-'+c);if(el)el.value='';});
+    document.getElementById('f-inicio').value=new Date().toISOString().split('T')[0];
+    const s=new Date();s.setFullYear(s.getFullYear()+1);
+    document.getElementById('f-vence').value=s.toISOString().split('T')[0];
+  }
+  document.getElementById('form-error').style.display='none';
+  document.getElementById('overlay-form').classList.add('open');
+}
+
+function cerrarModal(){cerrarOverlay('overlay-form');}
+function cerrarOverlay(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open');}));
+
+async function guardarPoliza(){
+  const g=id=>(document.getElementById('f-'+id)||{}).value||'';
+  const cliente=g('cliente').trim(),aseguradora=g('aseguradora'),tipo=g('tipo'),inicio=g('inicio'),vence=g('vence');
+  const errEl=document.getElementById('form-error');
+  if(!cliente||!aseguradora||!tipo||!inicio||!vence){errEl.textContent='Completa los campos obligatorios (*)';errEl.style.display='block';return;}
+  errEl.style.display='none';
+  const data={cliente,placa:g('placa'),numero:g('numero'),aseguradora,tipo,inicio,vence,prima:parseFloat(g('prima'))||0,telefono:g('telefono'),notas:g('notas')};
+  try {
+    if(editingId){
+      const actualizada=await apiPut(editingId,data);
+      const idx=polizas.findIndex(x=>x.id===editingId);
+      polizas[idx]=actualizada;
+      mostrarToast('Póliza actualizada');
+    } else {
+      const nueva=await apiPost(data);
+      polizas.push(nueva);
+      mostrarToast('Póliza registrada correctamente');
+    }
+    cerrarModal();render();
+  } catch(e){errEl.textContent='Error al guardar. Verifica que el servidor esté activo.';errEl.style.display='block';}
+}
+
+function editarPoliza(id){abrirModal(id);}
+
+async function eliminarPoliza(id){
+  const p=polizas.find(x=>x.id===id);
+  if(!confirm(`¿Eliminar la póliza de ${p.cliente}?`))return;
+  try{
+    await apiDelete(id);
+    polizas=polizas.filter(x=>x.id!==id);
+    render();mostrarToast('Póliza eliminada');
+  }catch(e){mostrarToast('Error al eliminar.');}
+}
+
+// ─── WhatsApp ────────────────────────────────────────────────────────────────
+function mensajeWA(p){
+  const dias=diasRestantes(p.vence);
+  if(dias<0)return`Estimado/a *${p.cliente}*, su póliza de *${p.tipo}* con *${p.aseguradora}*${p.placa&&p.placa!=='-'?` (${p.placa})`:''}${p.numero?' N° '+p.numero:''} *venció el ${fd(p.vence)}* y no cuenta con cobertura activa.\n\nContáctenos a la brevedad para proceder con la renovación.\n\n_Bróker de Seguros_`;
+  return`Estimado/a *${p.cliente}*, su póliza de *${p.tipo}* con *${p.aseguradora}*${p.placa&&p.placa!=='-'?` (${p.placa})`:''}${p.numero?' N° '+p.numero:''} vence el *${fd(p.vence)}* — faltan *${dias} días*.\n\nPara renovar su cobertura sin interrupciones, contáctenos antes de esa fecha.\n\n_Bróker de Seguros_`;
+}
+function numWA(tel){const n=(tel||'').replace(/\D/g,'');if(n.startsWith('593'))return n;if(n.startsWith('0'))return'593'+n.slice(1);return'593'+n;}
+function enviarWAIndividual(id){const p=polizas.find(x=>x.id===id);if(!p.telefono){mostrarToast('Sin teléfono registrado.');return;}window.open(`https://wa.me/${numWA(p.telefono)}?text=${encodeURIComponent(mensajeWA(p))}`,'_blank');mostrarToast(`WhatsApp abierto para ${p.cliente}`);}
+
+function mostrarPanelWA(){
+  const lista=polizas.filter(p=>{const d=diasRestantes(p.vence);return d<0||d<=30;}).sort((a,b)=>diasRestantes(a.vence)-diasRestantes(b.vence));
+  document.getElementById('wa-vacio').style.display=lista.length?'none':'block';
+  if(lista.length){
+    document.getElementById('wa-lista').innerHTML=lista.map(p=>{
+      const dias=diasRestantes(p.vence);
+      const color=estadoPoliza(dias)==='vencida'||estadoPoliza(dias)==='critica'?'#dc2626':'#d97706';
+      return`<div class="wa-item"><div class="wa-item-header"><input type="checkbox" class="wa-sel" data-id="${p.id}" checked><div style="flex:1"><strong style="font-size:13px">${p.cliente}</strong> <span style="font-size:11px;color:${color};margin-left:6px">${dias<0?'Vencida hace '+Math.abs(dias)+'d':'Vence en '+dias+'d'} · ${fd(p.vence)}</span></div><span style="font-size:11px;color:#64748b">${p.telefono||'sin teléfono'}</span></div><div class="wa-preview">${mensajeWA(p).replace(/\*/g,'').substring(0,150)}…</div>${!p.telefono?`<div style="font-size:11px;color:#dc2626;margin-top:5px"><i class="ti ti-alert-circle"></i> Sin teléfono</div>`:''}</div>`;
+    }).join('');
+  }
+  document.getElementById('overlay-wa').classList.add('open');
+}
+
+function enviarWASeleccionados(){
+  const checks=document.querySelectorAll('.wa-sel:checked');
+  if(!checks.length){mostrarToast('Selecciona al menos una póliza.');return;}
+  let enviados=0,sinTel=0;
+  checks.forEach((ch,i)=>{const p=polizas.find(x=>x.id===parseInt(ch.dataset.id));if(!p||!p.telefono){sinTel++;return;}setTimeout(()=>window.open(`https://wa.me/${numWA(p.telefono)}?text=${encodeURIComponent(mensajeWA(p))}`,'_blank'),i*800);enviados++;});
+  mostrarToast(`Abriendo ${enviados} chat${enviados!==1?'s':''}${sinTel?' ('+sinTel+' sin teléfono omitidos)':''}`);
+  setTimeout(()=>cerrarOverlay('overlay-wa'),1000);
+}
+
+// ─── Google Calendar ─────────────────────────────────────────────────────────
+function fmtICS(dateStr,offset=0){const d=new Date(dateStr+'T12:00:00');d.setDate(d.getDate()+offset);return d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';}
+function generarEventoICS(p){
+  const uid=`pol-${p.id}-${Date.now()}@broker-ec`;
+  const uid2=`pol-${p.id}-alerta-${Date.now()+1}@broker-ec`;
+  const now=new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+  const desc=`Póliza: ${p.numero||'N/A'} | Aseguradora: ${p.aseguradora} | Tipo: ${p.tipo}${p.placa&&p.placa!=='-'?' | Placa: '+p.placa:''}${p.prima?' | Prima: $'+parseFloat(p.prima).toFixed(2):''}${p.telefono?' | Tel: '+p.telefono:''}`;
+  const vDate=p.vence.replace(/-/g,'');
+  const a30=new Date(p.vence+'T12:00:00');a30.setDate(a30.getDate()-30);
+  const a30str=a30.toISOString().substring(0,10).replace(/-/g,'');
+  return`BEGIN:VEVENT\r\nUID:${uid}\r\nDTSTAMP:${now}\r\nDTSTART;VALUE=DATE:${vDate}\r\nDTEND;VALUE=DATE:${vDate}\r\nSUMMARY:🔴 VENCIMIENTO | ${p.cliente} — ${p.tipo} | ${p.aseguradora}\r\nDESCRIPTION:${desc}\r\nBEGIN:VALARM\r\nTRIGGER;VALUE=DATE-TIME:${fmtICS(p.vence,-30)}\r\nACTION:DISPLAY\r\nDESCRIPTION:Vence en 30 días: ${p.cliente}\r\nEND:VALARM\r\nEND:VEVENT\r\nBEGIN:VEVENT\r\nUID:${uid2}\r\nDTSTAMP:${now}\r\nDTSTART;VALUE=DATE:${a30str}\r\nDTEND;VALUE=DATE:${a30str}\r\nSUMMARY:🟡 ALERTA 30 DÍAS | ${p.cliente} — ${p.tipo} | ${p.aseguradora}\r\nDESCRIPTION:${desc}\r\nBEGIN:VALARM\r\nTRIGGER:-PT0M\r\nACTION:DISPLAY\r\nDESCRIPTION:Gestionar renovación: ${p.cliente}\r\nEND:VALARM\r\nEND:VEVENT`;
+}
+function descargarICS(eventos,nombre){const c=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Broker EC//Polizas//ES\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n${eventos.join('\r\n')}\r\nEND:VCALENDAR`;const blob=new Blob([c],{type:'text/calendar;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nombre+'.ics';a.click();mostrarToast('Archivo .ics descargado — ábrelo para importar en Google Calendar');}
+function exportarCalendar(){const prox=polizas.filter(p=>diasRestantes(p.vence)>=-30);if(!prox.length){mostrarToast('No hay pólizas activas para exportar.');return;}descargarICS(prox.map(generarEventoICS),`polizas_calendar_${new Date().toISOString().split('T')[0]}`);}
+function exportarCalendarIndividual(id){const p=polizas.find(x=>x.id===id);descargarICS([generarEventoICS(p)],`poliza_${p.cliente.replace(/\s+/g,'_')}`);}
+
+// ─── Exportar CSV ─────────────────────────────────────────────────────────────
+function exportCSV(){
+  const h=['Cliente','Placa','No. Póliza','Aseguradora','Tipo','Inicio','Vencimiento','Días','Estado','Prima','Teléfono','Notas'];
+  const rows=polizas.map(p=>{const d=diasRestantes(p.vence);return[p.cliente,p.placa||'',p.numero||'',p.aseguradora,p.tipo,p.inicio,p.vence,d,estadoPoliza(d),p.prima||'',p.telefono||'',p.notas||''];});
+  const csv=[h,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='polizas_'+new Date().toISOString().split('T')[0]+'.csv';a.click();
+}
+
+function mostrarToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+
+// Iniciar
+cargarPolizas();
+// Refresca datos cada 30 segundos para ver cambios de otros dispositivos
+setInterval(cargarPolizas, 30000);
+</script>
+</body>
+</html>
