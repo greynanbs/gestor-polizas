@@ -1,18 +1,45 @@
-const http = require('http');
-const fs   = require('fs');
-const path = require('path');
+const http       = require('http');
+const fs         = require('fs');
+const path       = require('path');
+const { MongoClient, ObjectId } = require('mongodb');
 
-// Render.com asigna el puerto automáticamente via variable de entorno
-const PORT    = process.env.PORT || 3000;
-const DB_FILE = path.join(__dirname, 'polizas.json');
-const HTML    = path.join(__dirname, 'index.html');
+const PORT     = process.env.PORT || 3000;
+const MONGO_URI = process.env.MONGO_URI;
+const HTML     = path.join(__dirname, 'index.html');
 
-if (!fs.existsSync(DB_FILE)) fs.writeFileSync(DB_FILE, '[]', 'utf8');
+if (!MONGO_URI) {
+  console.error('');
+  console.error('❌  ERROR: No se encontró la variable MONGO_URI.');
+  console.error('   Agrega MONGO_URI en las variables de entorno de Render.');
+  console.error('');
+  process.exit(1);
+}
 
-function leer()     { try { return JSON.parse(fs.readFileSync(DB_FILE,'utf8')); } catch(e){ return []; } }
-function guardar(d) { fs.writeFileSync(DB_FILE, JSON.stringify(d,null,2), 'utf8'); }
+let db;
 
-const server = http.createServer((req, res) => {
+async function conectarMongo() {
+  try {
+    const client = new MongoClient(MONGO_URI);
+    await client.connect();
+    db = client.db('broker_polizas');
+    console.log('✅  Conectado a MongoDB Atlas');
+  } catch(e) {
+    console.error('❌  Error conectando a MongoDB:', e.message);
+    process.exit(1);
+  }
+}
+
+function col() { return db.collection('polizas'); }
+
+function body(req) {
+  return new Promise((res, rej) => {
+    let d = '';
+    req.on('data', c => d += c);
+    req.on('end', () => { try { res(JSON.parse(d)); } catch(e) { rej(e); } });
+  });
+}
+
+const server = http.createServer(async (req, res) => {
   const { url, method } = req;
 
   res.setHeader('Access-Control-Allow-Origin',  '*');
@@ -20,81 +47,77 @@ const server = http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
 
-  // Página principal
-  if (method === 'GET' && (url === '/' || url === '/index.html')) {
-    fs.readFile(HTML, (err, data) => {
-      if (err) { res.writeHead(404); res.end('No se encontró index.html'); return; }
+  const json = (data, status = 200) => {
+    res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify(data));
+  };
+
+  try {
+
+    // Página principal
+    if (method === 'GET' && (url === '/' || url === '/index.html')) {
+      const html = fs.readFileSync(HTML);
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end(data);
-    });
-    return;
-  }
+      res.end(html);
+      return;
+    }
 
-  // GET /api/polizas
-  if (method === 'GET' && url === '/api/polizas') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(leer()));
-    return;
-  }
+    // GET /api/polizas — listar todas
+    if (method === 'GET' && url === '/api/polizas') {
+      const lista = await col().find({}).toArray();
+      // Convertir _id de MongoDB a id numérico que usa el front
+      const resultado = lista.map(p => ({ ...p, id: p._id.toString() }));
+      json(resultado);
+      return;
+    }
 
-  // POST /api/polizas
-  if (method === 'POST' && url === '/api/polizas') {
-    let body = '';
-    req.on('data', c => body += c);
-    req.on('end', () => {
-      try {
-        const nueva = JSON.parse(body);
-        const lista = leer();
-        nueva.id = Date.now();
-        lista.push(nueva);
-        guardar(lista);
-        res.writeHead(201, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(nueva));
-      } catch(e) { res.writeHead(400); res.end('Error'); }
-    });
-    return;
-  }
+    // POST /api/polizas — crear nueva
+    if (method === 'POST' && url === '/api/polizas') {
+      const data = await body(req);
+      data.creadoEn = new Date();
+      const r = await col().insertOne(data);
+      json({ ...data, id: r.insertedId.toString(), _id: r.insertedId }, 201);
+      return;
+    }
 
-  // PUT /api/polizas/:id
-  if (method === 'PUT' && url.startsWith('/api/polizas/')) {
-    const id = parseInt(url.split('/').pop());
-    let body = '';
-    req.on('data', c => body += c);
-    req.on('end', () => {
-      try {
-        const data  = JSON.parse(body);
-        const lista = leer();
-        const idx   = lista.findIndex(p => p.id === id);
-        if (idx === -1) { res.writeHead(404); res.end('No encontrada'); return; }
-        lista[idx] = { ...lista[idx], ...data, id };
-        guardar(lista);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(lista[idx]));
-      } catch(e) { res.writeHead(400); res.end('Error'); }
-    });
-    return;
-  }
+    // PUT /api/polizas/:id — actualizar
+    if (method === 'PUT' && url.startsWith('/api/polizas/')) {
+      const id  = url.split('/').pop();
+      const data = await body(req);
+      delete data._id;
+      delete data.id;
+      const r = await col().findOneAndUpdate(
+        { _id: new ObjectId(id) },
+        { $set: data },
+        { returnDocument: 'after' }
+      );
+      if (!r) { res.writeHead(404); res.end('No encontrada'); return; }
+      json({ ...r, id: r._id.toString() });
+      return;
+    }
 
-  // DELETE /api/polizas/:id
-  if (method === 'DELETE' && url.startsWith('/api/polizas/')) {
-    const id    = parseInt(url.split('/').pop());
-    let lista   = leer();
-    const antes = lista.length;
-    lista = lista.filter(p => p.id !== id);
-    if (lista.length === antes) { res.writeHead(404); res.end('No encontrada'); return; }
-    guardar(lista);
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ ok: true }));
-    return;
-  }
+    // DELETE /api/polizas/:id — eliminar
+    if (method === 'DELETE' && url.startsWith('/api/polizas/')) {
+      const id = url.split('/').pop();
+      await col().deleteOne({ _id: new ObjectId(id) });
+      json({ ok: true });
+      return;
+    }
 
-  res.writeHead(404); res.end('Ruta no encontrada');
+    res.writeHead(404); res.end('Ruta no encontrada');
+
+  } catch(e) {
+    console.error('Error en petición:', e.message);
+    res.writeHead(500); res.end('Error interno del servidor');
+  }
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log('');
-  console.log('==============================================');
-  console.log('  ✅  Servidor de Pólizas en funcionamiento');
-  console.log(`  →  Puerto: ${PORT}`);
-  console.log('==============================================');
+conectarMongo().then(() => {
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log('');
+    console.log('==============================================');
+    console.log('  ✅  Servidor de Pólizas con MongoDB Atlas');
+    console.log(`  →  Puerto: ${PORT}`);
+    console.log('==============================================');
+  });
 });
