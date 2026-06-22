@@ -22,7 +22,8 @@ async function conectar() {
 }
 
 // ── COLECCIONES ──────────────────────────────────────────────────────
-const C = {\n  polizas:        () => db.collection('polizas'),
+const C = {
+  polizas:        () => db.collection('polizas'),
   aseguradoras:   () => db.collection('aseguradoras'),
   ramos:          () => db.collection('ramos'),
   vendedores:     () => db.collection('vendedores'),
@@ -33,8 +34,7 @@ const C = {\n  polizas:        () => db.collection('polizas'),
   descCobros:     () => db.collection('descuentos_cobros'),
   movPagos:       () => db.collection('movimientos_pagos'),
   movCobros:      () => db.collection('movimientos_cobros'),
-  liqCobros:      () => db.collection('liquidaciones_cobros'),
-  anticipos:      () => db.collection('anticipos_vendedores')
+  liqCobros:      () => db.collection('liquidaciones_cobros')
 };
 
 async function seed() {
