@@ -38,16 +38,17 @@ const C = {
 };
 
 async function seed() {
-  const u = await C.usuarios().findOne({});
-  if (!u) {
+  const u = await C.usuarios().findOne({ $or: [{ email: d.usuario }, { usuario: d.usuario }], password: d.password });
+  if (count === 0) {
     await C.usuarios().insertOne({
-      usuario: "admin",
-      clave: "admin123",
-      nombre: "Administrador Central",
-      rol: "admin"
+      usuario: "greyna",
+      email: "admin@reynaseguros.com",
+      password: "Keanu2018",
+      rol: "administrador",
+      nombre: "Gerente Reyna"
     });
+    console.log("Usuario inicial creado con éxito.");
   }
-}
 
 function toOid(id) {
   if(!id) return null;
