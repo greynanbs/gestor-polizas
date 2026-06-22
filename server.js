@@ -342,14 +342,14 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(404); res.end('Ruta no encontrada');
   } catch(e) {
     console.error('Error:', e.message);
-    res.writeHead(500); res.end('Error interno del servidor');
+    res.writeHead(500); res.end('Error interno');
   }
 });
 
 conectar().then(() => {
-  server.listen(PORT, () => {
-    console.log(`Servidor corriendo en puerto ${PORT}`);
+  http.createServer(app).listen(PORT, () => {
+    console.log(`Servidor ejecutándose en puerto ${PORT}`);
   });
 }).catch(err => {
-  console.error('Error inicializando base de datos:', err);
+  console.error('Error crítico al iniciar:', err);
 });
